@@ -1,2 +1,2 @@
-# Recal
-Rendering and Compute Abstraction Layer
+# Coral
+Compute and Rendering Abstraction Layer
