@@ -1,0 +1,2 @@
+add_subdirectory(CoralDemoApp)
+add_subdirectory(EditorApp)

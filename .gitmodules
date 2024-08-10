@@ -1,0 +1,3 @@
+[submodule "Log20"]
+	path = Log20
+	url = .\\src\\Log20\\
