@@ -1,3 +1,6 @@
 [submodule "Log20"]
 	path = Log20
 	url = .\\src\\Log20\\
+[submodule "src/Log20"]
+	path = src/Log20
+	url = https://github.com/JimmyLaessig/Log20
