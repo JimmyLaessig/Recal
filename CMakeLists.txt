@@ -20,7 +20,7 @@ set(CMAKE_CXX_EXTENSIONS FALSE)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_VISIBILITY_INLINES_HIDDEN TRUE)
 
-include(cmake/AddTarget.cmake)
+include(cmake/ConfigureTarget.cmake)
 
 add_subdirectory(ThirdParty)
 

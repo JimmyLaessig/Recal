@@ -1,10 +1,4 @@
-module;
-
-
-#include <string_view>
-
-module Engine.Application.CommandLineArguments;
-
+#include <Engine/Application/CommandLineArguments.hpp>
 
 using namespace Reef;
 

@@ -169,7 +169,7 @@ bool    ImGui_ImplWin32_Init(void* hwnd)
             bd->XInputGetState = (PFN_XInputGetState)::GetProcAddress(dll, "XInputGetState");
             break;
         }
-#endif // IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
+#endif // !IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
 
     return true;
 }
@@ -186,7 +186,7 @@ void    ImGui_ImplWin32_Shutdown()
 #ifndef IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
     if (bd->XInputDLL)
         ::FreeLibrary(bd->XInputDLL);
-#endif // IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
+#endif // !IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
 
     io.BackendPlatformName = nullptr;
     io.BackendPlatformUserData = nullptr;
@@ -371,7 +371,7 @@ static void ImGui_ImplWin32_UpdateGamepads()
     MAP_ANALOG(ImGuiKey_GamepadRStickDown,      gamepad.sThumbRY, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32768);
     #undef MAP_BUTTON
     #undef MAP_ANALOG
-#endif // #ifndef IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
+#endif // !#ifndef IMGUI_IMPL_WIN32_DISABLE_GAMEPAD
 }
 
 static BOOL CALLBACK ImGui_ImplWin32_UpdateMonitors_EnumFunc(HMONITOR monitor, HDC, LPRECT, LPARAM)

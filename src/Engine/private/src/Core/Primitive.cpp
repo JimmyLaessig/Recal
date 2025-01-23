@@ -1,4 +1,4 @@
-module;
+#include <Engine/Core/Primitive.hpp>
 
 #include <glm/glm.hpp>
 
@@ -8,11 +8,7 @@ module;
 #include <span>
 #include <array>
 #include <memory>
-
-module Engine.Primitive;
-
-import Engine.Texture;
-import Engine.Material;
+#include <ranges>
 
 
 using namespace Reef;
@@ -95,59 +91,105 @@ Primitive::Primitive()
 }
 
 
-void
-Primitive::setIndices(const std::span<uint32_t> indices)
+bool
+Primitive::set(std::span<const uint16_t> indices,
+			   std::span<const glm::vec3> positions,
+			   std::span<const glm::vec3> normals,
+			   std::span<const glm::vec3> tangents,
+			   std::span<const glm::vec2> texCoords)
 {
-	copy(indices, mIndices);
-	mIndexFormat = IndexFormat::UNSIGNED_INT;
-	mIsOutdated = true;
+	return set(std::as_bytes(indices), IndexFormat::UNSIGNED_SHORT, positions, normals, tangents, texCoords);
 }
 
 
-void
-Primitive::setIndices(const std::span<uint16_t> indices)
+bool
+Primitive::set(std::span<const uint32_t> indices,
+			   std::span<const glm::vec3> positions,
+			   std::span<const glm::vec3> normals,
+			   std::span<const glm::vec3> tangents,
+			   std::span<const glm::vec2> texCoords)
 {
-	copy(indices, mIndices);
-	mIndexFormat = IndexFormat::UNSIGNED_SHORT;
-	mIsOutdated = true;
+	return set(std::as_bytes(indices), IndexFormat::UNSIGNED_INT, positions, normals, tangents, texCoords);
 }
 
 
-void
-Primitive::setPositions(const std::span<glm::vec3> positions)
+bool
+Primitive::set(std::span<const std::byte> indices,
+			   IndexFormat indexFormat,
+			   std::span<const glm::vec3> positions,
+			   std::span<const glm::vec3> normals,
+			   std::span<const glm::vec3> tangents,
+			   std::span<const glm::vec2> texCoords)
 {
+	if (positions.empty())
+	{
+		return false;
+	}
+
+	if (!normals.empty() && normals.size() != positions.size())
+	{
+		return false;
+	}
+
+	if (!texCoords.empty() && texCoords.size() != positions.size())
+	{
+		return false;
+	}
+
+	if (!tangents.empty() && tangents.size() != positions.size())
+	{
+		return false;
+	}
+
+	if (!indices.empty())
+	{
+		mIndices.assign(indices.begin(), indices.end());
+	}
+	else
+	{
+		// TODO: create index buffer
+		return false;
+	}
+
+	
+	mIndexFormat = indexFormat;
+
 	mPositions.assign(positions.begin(), positions.end());
-	recalculateBoundingBox();
-	mIsOutdated = true;
+
+	if (!normals.empty())
+	{
+		mNormals.assign(normals.begin(), normals.end());
+	}
+	else
+	{
+		recalculateNormals();
+	}
+
+	if (!texCoords.empty())
+	{
+		mTexCoords.assign(texCoords.begin(), texCoords.end());
+	}
+	else
+	{
+		mTexCoords.assign(mPositions.size(), glm::vec2(0.f, 0.f));
+	}
+
+	if (!tangents.empty())
+	{
+		mTangents.assign(tangents.begin(), tangents.end());
+	}
+	else
+	{
+		recalculateTangents();
+	}
+
+	markOutdated();
+
+	return true;
 }
 
 
-void
-Primitive::setNormals(const std::span<glm::vec3> normals)
-{
-	mNormals.assign(normals.begin(), normals.end());
-	mIsOutdated = true;
-}
-
-
-void
-Primitive::setTexcoords(const std::span<glm::vec2> texCoords)
-{
-	mTexCoords.assign(texCoords.begin(), texCoords.end());
-	mIsOutdated = true;
-}
-
-
-void
-Primitive::setTangents(const std::span<glm::vec3> tangents)
-{
-	mTangents.assign(tangents.begin(), tangents.end());
-	mIsOutdated = true;
-	mVersion++;
-}
-
-
-const std::vector<std::byte>&
+std::span<const std::byte>
 Primitive::indices() const
 {
 	return mIndices;
@@ -161,28 +203,28 @@ Primitive::indexFormat() const
 }
 
 
-const std::vector<glm::vec3>&
+std::span<const glm::vec3>
 Primitive::positions() const
 {
 	return mPositions;
 }
 
 
-const std::vector<glm::vec3>&
+std::span<const glm::vec3>
 Primitive::normals() const
 {
 	return mNormals;
 }
 
 
-const std::vector<glm::vec3>&
+std::span<const glm::vec3>
 Primitive::tangents() const
 {
 	return mTangents;
 }
 
 
-const std::vector<glm::vec2>&
+std::span<const glm::vec2>
 Primitive::texcoords() const
 {
 	return mTexCoords;
@@ -230,6 +272,14 @@ Primitive::recalculateBoundingBox()
 
 
 void
+Primitive::recalculateNormals()
+{
+	mNormals.assign(mPositions.size(), glm::vec3(1.f, 0.f, 0.f));
+	assert(false);
+}
+
+
+void
 Primitive::recalculateTangents()
 {
 	switch (mIndexFormat)
@@ -241,19 +291,6 @@ Primitive::recalculateTangents()
 			mTangents = computeTangents(std::span<uint16_t>((uint16_t*)mIndices.data(), mIndices.size() / 2), mPositions, mTexCoords);
 			break;
 	}
-
-	mIsOutdated = true;
 }
 
 
-size_t
-Primitive::version() const
-{
-	if (mIsOutdated)
-	{
-		mVersion++;
-		mIsOutdated = false;
-	}
-
-	return mVersion;
-}

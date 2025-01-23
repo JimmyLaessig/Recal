@@ -17,7 +17,7 @@ namespace Reef
 
 namespace Rendering
 {
-export class RenderResource;
+class RenderResource;
 }
 
 }

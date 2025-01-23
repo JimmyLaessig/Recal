@@ -17,7 +17,7 @@ conan_cmake_configure(
         glm/cci.20220420
         imgui/cci.20230105+1.89.2.docking
         shaderc/2023.6
-        cli11/2.3.2
+        cli11/2.4.2
         tinygltf/2.8.13
         vulkan-headers/1.3.268.0
         volk/1.3.268.0

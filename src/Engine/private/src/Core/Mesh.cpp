@@ -1,4 +1,4 @@
-module;
+#include <Engine/Core/Mesh.hpp>
 
 #include <glm/glm.hpp>
 
@@ -7,11 +7,6 @@ module;
 #include <memory>
 #include <numeric>
 #include <vector>
-
-module Engine.Mesh;
-
-import Engine.Texture;
-import Engine.Material;
 
 using namespace Reef;
 
@@ -211,12 +206,7 @@ Mesh::Quad()
 		 
 		sMesh = std::make_shared<Mesh>();
 		auto& primitive = sMesh->addPrimitive();
-		primitive.setPositions(positions);
-		primitive.setIndices(indices);
-		primitive.setNormals(normals);
-		primitive.setTexcoords(uvs);
-		primitive.recalculateTangents();
-		//primitive.setMaterial(std::make_shared<Material>(*Material::DefaultPBR()));
+		primitive.set(indices, positions, normals, /*tangents*/{}, uvs);
 	}
 
 	return sMesh;
@@ -379,12 +369,8 @@ Mesh::Cube()
 		sMesh = std::make_shared<Mesh>();
 		auto& primitive = sMesh->addPrimitive();
 
-		primitive.setPositions(positions);
-		primitive.setIndices(indices);
-		primitive.setNormals(normals);
-		
-		primitive.setTexcoords(uvs);
-		primitive.recalculateTangents();
+		primitive.set(indices, positions, normals, /*tangents*/{}, uvs);
+
 		//primitive.setMaterial(std::make_shared<Material>(*Material::DefaultPBR()));
 	}
 
@@ -440,13 +426,7 @@ Mesh::Plane()
 
 		sMesh = std::make_shared<Mesh>();
 		auto& primitive = sMesh->addPrimitive();
-		
-		primitive.setPositions(positions);
-		primitive.setIndices(indices);
-		primitive.setNormals(normals);
-		primitive.setTexcoords(uvs);
-		primitive.recalculateTangents();
-		//primitive.setMaterial(std::make_shared<Material>(*Material::DefaultPBR()));
+		primitive.set(indices, positions, normals, /*tangents*/ {}, uvs);
 	}
 
 	return sMesh;

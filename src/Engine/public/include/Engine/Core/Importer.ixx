@@ -1,7 +1,7 @@
 //#ifndef ENGINE_SERIALIZER_H_
 //#define ENGINE_SERIALIZER_H_
 //
-////#include <Engine/System.h>
+////#include <Engine/System.hpp>
 //
 ////#include <string>
 ////#include <string_view>
@@ -40,4 +40,4 @@
 //
 //} // namespace Reef
 //
-//#endif // UTIL_TYPE_H_
+//#endif // !UTIL_TYPE_H_

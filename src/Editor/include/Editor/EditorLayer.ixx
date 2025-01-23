@@ -5,7 +5,7 @@ import Engine.Application.Layer;
 namespace Editor
 {
 
-export class EditorLayer : public Engine::Layer
+class EditorLayer : public Engine::Layer
 {
 
 public:

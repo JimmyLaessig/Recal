@@ -1,48 +1,40 @@
+#include <Engine/Application/EntryPoint.hpp>
+#include <Engine/Core/Scene.hpp>
+#include <Engine/Core/SceneObject.hpp>
+
+#include <Engine/Core/GLTFLoader.hpp>
+
+#include <Engine/Component/CameraComponent.hpp>
 
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <tiny_gltf.h>
 
-
 #include <string>
 
-import Engine.Application;
-import Engine.Application.CommandLineArguments;
-//import Engine.SubclassOf;
-//import Engine.Component;
 
-import Engine.GameObjectFactory;
-
-//class UpdateComponent : public Reef::SubclassOf<UpdateComponent, Reef::Component>
-//{
-//public:
-//
-//	void onUpdate()
-//	{
-//		//std::cout << "onFrameUpdate" << std::endl;
-//	}
-//};
-
-
-int main(int argc, char** argv)
+class Loader : public Reef::SubclassOf<Loader, Reef::Component>
 {
-	Reef::CommandLineArguments arguments(static_cast<size_t>(argc), argv);
+public:
 
-	auto app = Reef::createApplication(arguments);
+	void onComponentCreated() override
+	{
+		auto sponza = Reef::GLTFLoader::load(owner().scene(), "C:/Users/bernh/Development/glTF-Sample-Assets/Models/Sponza/glTF/Sponza.gltf");
+		//auto sponza = Reef::GLTFLoader::load(owner().scene(), "C:/Users/bernh/Development/glTF-Sample-Assets/Models/Box/glTF/Box.gltf");
+		auto camera = createSceneObject("Camera");
+		camera->addComponent<Reef::CameraComponent>(true);
+	}
+};
 
-	auto scene = app->getActiveScene();
 
-	tinygltf::Model model;
-	std::string err;
-	std::string warn;
-	tinygltf::TinyGLTF loader;
-	//loader.SetImageLoader(nullptr, nullptr);
-	bool success = loader.LoadASCIIFromFile(&model, &err, &warn, "C:/Users/bernh/Development/glTF-Sample-Assets/Models/Sponza/glTF/Sponza.gltf");
+bool
+Reef::initialize(Reef::Application& app, const Reef::CommandLineArguments& commandLineArguments)
+{
+	auto scene = app.getActiveScene();
+
+	scene->createSceneObject("Loader")->addComponent<Loader>();
+
 	
-	Reef::GameObjectFactory::createGameObject(*scene, model);
-
-	auto returnCode = app->run();
-
-	return static_cast<int>(returnCode);
+	return true;
 }

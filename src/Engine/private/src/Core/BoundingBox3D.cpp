@@ -1,11 +1,8 @@
-module;
+#include <Engine/Core/BoundingBox3D.hpp>
 
 #include <glm/glm.hpp>
 
-module Engine.BoundingBox3D;
-
 using namespace Reef;
-
 
 BoundingBox3D::BoundingBox3D(const glm::vec3& min, 
 							 const glm::vec3& max)

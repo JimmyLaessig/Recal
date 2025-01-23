@@ -1,9 +1,8 @@
-module;
+#include <Engine/Core/Range1D.hpp>
 
 #include <cassert>
 #include <algorithm>
 
-module Engine.Range1D;
 
 using namespace Reef;
 

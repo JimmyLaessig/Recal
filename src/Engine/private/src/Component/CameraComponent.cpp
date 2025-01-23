@@ -1,11 +1,9 @@
-module;
+#include <Engine/Component/CameraComponent.hpp>
+
+#include <Engine/Core/SceneObject.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
-
-module Engine.Component.CameraComponent;
-
-import Engine.GameObject;
 
 using namespace Reef;
 

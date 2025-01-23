@@ -6,7 +6,7 @@ import Engine.Application;
 namespace Editor
 {
 
-export class EditorApplication : public Engine::Application
+class EditorApplication : public Engine::Application
 {
 
 public:

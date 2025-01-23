@@ -88,4 +88,4 @@ vec3 PBR(vec3 V, vec3 L, vec3 N, vec3 baseColor, float roughness, float metallic
 	return (diffuseBRDF + specularBRDF) * lightIntensity * NdotL;
 }
 
-#endif // COMMON_GLSL
+#endif // !COMMON_GLSL

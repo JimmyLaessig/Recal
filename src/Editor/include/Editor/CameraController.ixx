@@ -6,7 +6,7 @@ import Engine.Component;
 
 import <chrono>;
 
-export class CameraController : public Engine::InheritsFrom<CameraController, Engine::Component>
+class CameraController : public Engine::InheritsFrom<CameraController, Engine::Component>
 {
 
 public:

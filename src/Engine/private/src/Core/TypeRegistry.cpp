@@ -1,16 +1,15 @@
-module;
+#include <Engine/Core/TypeRegistry.hpp>
 
 #include <string_view>
+#include <unordered_map>
 
-module Engine.TypeRegistry;
-
-import Common.CRC32;
+#include <Common/CRC32.hpp>
 
 using namespace Reef;
 
 
 bool
-TypeRegistry::registerType(const Type& type, const TypeTraits& typeTraits)
+TypeRegistry::registerType(const Type& type, TypeTraits typeTraits)
 {
 	auto& registry = instance();
 
@@ -59,8 +58,8 @@ TypeRegistry::getType(std::string_view name)
 }
 
 
-ConstructorWrapper
-TypeRegistry::constructor(const Type& type)
+TypeTraits
+TypeRegistry::getTypeTraits(const Type& type)
 {
 	auto& registry = instance();
 
@@ -69,23 +68,7 @@ TypeRegistry::constructor(const Type& type)
 	if (iter == registry.mRegisteredTypes.end())
 	{
 		// TODO: Log error
-		return nullptr;
+		return {};
 	}
-	return iter->second.traits.constructor;
-}
-
-
-UpdateFunctionWrapper
-TypeRegistry::updateFunction(const Type& type)
-{
-	auto& registry = instance();
-
-	auto iter = registry.mRegisteredTypes.find(type.uniqueId());
-
-	if (iter == registry.mRegisteredTypes.end())
-	{
-		// TODO: Log error
-		return nullptr;
-	}
-	return iter->second.traits.updateFunction;
+	return iter->second.typeTraits;
 }

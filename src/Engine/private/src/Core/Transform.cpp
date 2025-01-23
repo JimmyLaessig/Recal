@@ -1,19 +1,16 @@
-module;
+#include <Engine/Core/Transform.hpp>
+#include <Engine/Core/SceneObject.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtx/transform.hpp>
 
-module Engine.Transform;
-
-import Engine.GameObject;
-
 using namespace Reef;
 
 
-Transform::Transform(GameObject& gameObject)
-	:mGameObject(gameObject)
+Transform::Transform(SceneObject& gameObject)
+	: mGameObject(gameObject)
 {
 }
 

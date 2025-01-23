@@ -4,3 +4,6 @@
 [submodule "src/Log20"]
 	path = src/Log20
 	url = https://github.com/JimmyLaessig/Log20
+[submodule "Coral"]
+	path = Coral
+	url = git@github.com:JimmyLaessig/Coral.git

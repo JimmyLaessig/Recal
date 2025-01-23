@@ -1,4 +1,4 @@
-module;
+#include <Engine/Application/WindowImpl.hpp>
 
 #include <cassert>
 #include <memory>
@@ -11,8 +11,6 @@ module;
 #include <GLFW/glfw3native.h>
 #pragma warning( pop )
 #undef DELETE
-
-module Engine.Application.WindowImpl;
 
 using namespace Reef;
 

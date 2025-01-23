@@ -1,6 +1,6 @@
 module;
 
-#include <Engine/System.h>
+#include <Engine/System.hpp>
 
 #include <glm/glm.hpp>
 

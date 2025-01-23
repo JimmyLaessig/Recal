@@ -1,1 +1,4 @@
-add_subdirectory(ShaderCompiler)
+add_subdirectory(CoralShaderCompilerCLI)
+add_subdirectory(CoralShaderCompiler)
+add_subdirectory(MaterialGenerator)
+add_subdirectory(MaterialGeneratorCLI)

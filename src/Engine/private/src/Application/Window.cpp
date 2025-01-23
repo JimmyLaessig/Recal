@@ -1,11 +1,8 @@
-module;
+#include <Engine/Application/Window.hpp>
+#include <Engine/Application/WindowImpl.hpp>
 
 #include <memory>
 #include <string_view>
-
-module Engine.Application.Window;
-
-import Engine.Application.WindowImpl;
 
 using namespace Reef;
 

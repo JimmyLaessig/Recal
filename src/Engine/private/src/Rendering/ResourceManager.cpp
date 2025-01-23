@@ -1,132 +1,99 @@
-module;
+#include <Engine/Rendering/ResourceManager.hpp>
 
-#include <variant>
+#include <Common/Visitor.hpp>
+
 #include <memory>
+#include <variant>
 
-module Engine.Rendering.ResourceManager;
-//
-//
-//import Engine.Rendering.TextureResource;
-//import Engine.Rendering.PrimitiveResource;
-//import Engine.Rendering.ShaderResource;
-//
-//import Engine.Rendering.UniformBufferFactory;
-//import Engine.Rendering.SceneView;
-//
-//import RenderLib.RAII;
-//
-import Visitor;
-//
-//array>;
-//vector>;
-
-import Visitor;
 
 using namespace Reef::Rendering;
 
-bool
-ResourceManager::initialize(RenderLib::Context& context)
+
+void
+ResourceManager::initialize(Coral::Context& context)
 {
 	mContext = &context;
-
-	return true;
 }
 
-PrimitiveResource* 
-ResourceManager::getResource(const Engine::Primitive& primitive)
-{
-	auto iter = mResources.find(primitive.runtimeUniqueId());
 
+PrimitiveResource*
+ResourceManager::getResource(const Reef::Primitive& primitive)
+{
+	auto id = reinterpret_cast<size_t>(&primitive);
+	auto iter = mResources.find(id);
 	if (iter == mResources.end())
 	{
-		return nullptr;
+		mResources[id] = std::make_unique<PrimitiveResource>(*this);
+		iter = mResources.find(id);
 	}
 
-	return std::visit(Visitor
+	return Common::visit(iter->second, Common::Visitor{
+		[](const auto& ptr) -> PrimitiveResource* { return nullptr; },
+		[&](const std::unique_ptr<PrimitiveResource>& ptr) -> PrimitiveResource*
 		{
-			[&](std::unique_ptr<PrimitiveResource>& res) -> PrimitiveResource* { return res.get(); },
-			[&](std::unique_ptr<TextureResource>& res) -> PrimitiveResource* { return nullptr; },
-		}, iter->second);
+			return ptr->update(primitive, *mContext) ? ptr.get() : nullptr;
+		}	
+	});
 }
 
 
-TextureResource* 
-ResourceManager::getResource(const Engine::Texture& texture)
+MaterialResource*
+ResourceManager::getResource(const Reef::Material& material)
 {
-	auto iter = mResources.find(texture.runtimeUniqueId());
-
+	auto id = reinterpret_cast<size_t>(&material);
+	auto iter = mResources.find(id);
 	if (iter == mResources.end())
 	{
-		return nullptr;
+		mResources[id] = std::make_unique<MaterialResource>(*this);
+		iter = mResources.find(id);
 	}
-	
-	return std::visit(Visitor
+
+	return Common::visit(iter->second, Common::Visitor{ 
+		[](const auto& ptr) -> MaterialResource* {  return nullptr; },
+		[&](const std::unique_ptr<MaterialResource>& ptr) -> MaterialResource*
 		{
-			[&](std::unique_ptr<PrimitiveResource>& res) -> TextureResource* { return nullptr; },
-			[&](std::unique_ptr<TextureResource>& res) -> TextureResource* { return res.get(); },
-		}, iter->second);
+			return ptr->update(material, *mContext) ? ptr.get() : nullptr;
+		}
+	});
 }
 
 
-TextureResource* 
-ResourceManager::updateResource(const Engine::Texture& texture)
+TransformResource*
+ResourceManager::getResource(const TransformData& transform)
 {
-	auto resource = getResource(texture);
-
-	bool updateResource = texture.isOutdated();
-
-	if (!resource)
+	auto id = transform.objectId;
+	auto iter = mResources.find(id);
+	if (iter == mResources.end())
 	{
-		updateResource = true;
-		
-		auto newResource = std::make_unique<Engine::Rendering::TextureResource>();
-		resource = newResource.get();
-		mResources[texture.runtimeUniqueId()] = std::move(newResource);
+		mResources[id] = std::make_unique<TransformResource>(*this);
+		iter = mResources.find(id);
 	}
 
-	if (!updateResource)
-	{
-		return resource;
-	}
-
-	if (!resource->set(texture, *this))
-	{
-		mResources.erase(texture.runtimeUniqueId());
-		return nullptr;
-	}
-
-	return resource;
+	return Common::visit(iter->second, Common::Visitor{
+		[](const auto& ptr) -> TransformResource* { return nullptr; },
+		[&](const std::unique_ptr<TransformResource>& ptr) -> TransformResource*
+		{
+			return ptr->update(transform, *mContext) ? ptr.get() : nullptr;
+		} });
 }
 
 
-PrimitiveResource*  
-ResourceManager::updateResource(const Engine::Primitive& primitive)
+TextureResource*
+ResourceManager::getResource(const Reef::Texture& texture)
 {
-	auto resource = getResource(primitive);
-
-	bool updateResource = primitive.isOutdated();
-
-	if (!resource)
+	auto id = reinterpret_cast<size_t>(&texture);
+	auto iter = mResources.find(id);
+	if (iter == mResources.end())
 	{
-		updateResource = true;
-
-		auto newResource = std::make_unique<Engine::Rendering::PrimitiveResource>();
-		resource = newResource.get();
-		mResources[primitive.runtimeUniqueId()] = std::move(newResource);
+		mResources[id] = std::make_unique<TextureResource>(*this);
+		iter = mResources.find(id);
 	}
 
-	if (!updateResource)
-	{
-		return resource;
-	}
-
-	if (!resource->set(primitive, *this))
-	{
-		mResources.erase(primitive.runtimeUniqueId());
-		return nullptr;
-	}
-
-	return resource;
+	return Common::visit(iter->second, Common::Visitor{
+		[](const auto& ptr) -> TextureResource* {  return nullptr; },
+		[&](const std::unique_ptr<TextureResource>& ptr) -> TextureResource*
+		{
+			return ptr->update(texture, *mContext) ? ptr.get() : nullptr;
+		}
+		});
 }
-
-

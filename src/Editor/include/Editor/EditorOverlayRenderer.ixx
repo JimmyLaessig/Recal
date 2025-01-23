@@ -5,7 +5,7 @@ import Engine.Application.Layer;
 namespace Editor
 {
 
-export class EditorOverlayRenderer
+class EditorOverlayRenderer
 {
 
 };

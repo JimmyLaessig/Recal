@@ -42,4 +42,4 @@ vec2 texCoordsToSphericalCoords(vec2 texCoords)
 }
 
 
-#endif // SPHERICAL_GLSL_
+#endif // !SPHERICAL_GLSL_

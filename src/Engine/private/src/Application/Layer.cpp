@@ -1,20 +1,8 @@
-module;
+#include <Engine/Application/Layer.hpp>
+#include <Engine/Application/Application.hpp>
 
-
-module Engine.Application.Layer;
-
-import Engine.Application;
 
 using namespace Reef;
-
-
-bool
-Layer::initialize(Application& application)
-{
-	mApplication = &application;
-
-	return true;
-};
 
 
 void

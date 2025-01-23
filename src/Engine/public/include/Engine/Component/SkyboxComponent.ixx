@@ -32,4 +32,4 @@
 //
 //} // namespace Reef
 //
-//#endif // ENGINE_COMPONENTS_SKYBOXCOMPONENT_H_
+//#endif // !ENGINE_COMPONENTS_SKYBOXCOMPONENT_H_

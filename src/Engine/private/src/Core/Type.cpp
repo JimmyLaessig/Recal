@@ -1,28 +1,11 @@
-module;
+#include <Engine/Core/Type.hpp>
+#include <Engine/Core/TypeRegistry.hpp>
 
 #include <array>
 #include <cstdint>
 #include <string_view>
 
-module Engine.Type;
-
-import Engine.TypeRegistry;
-
 using namespace Reef;
-
-constexpr const
-std::string_view Type::name() const
-{
-	return mName;
-}
-
-
-constexpr size_t
-Type::uniqueId() const
-{
-	return mUniqueId;
-}
-
 
 const Type*
 Type::parent() const

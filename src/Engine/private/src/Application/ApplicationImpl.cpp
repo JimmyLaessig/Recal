@@ -1,27 +1,58 @@
-module;
+#include <Engine/Application/ApplicationImpl.hpp>
+
+#include <Engine/Core/Scene.hpp>
+
+#include <Engine/Core/SceneManager.hpp>
+#include <Engine/Rendering/DefaultRenderer.hpp>
+//#include <Rendering/Shaders/DefaultPBR.h>
 
 #include <ranges>
 #include <vector>
 #include <memory>
 
-module Engine.Application.ApplicationImpl;
-
-import Engine.Application.WindowLayer;
-
-import Engine.TypeRegistry;
-import Engine.SceneManager;
-
-import Common.SmartPointer;
+//module Engine.Application.ApplicationImpl;
+//
+//
+//import Engine.TypeRegistry;
+//import Engine.SceneManager;
+//
+//import Engine.Shader;
+//
+//import Engine.Rendering.DefaultRenderer;
+//
+//import Common.SmartPointer;
 //import Engine.ObjectFactory;
 
 using namespace Reef;
 
 
 ApplicationImpl::ApplicationImpl()
-	: mSceneManager(*this)
-	, mShaderManager(*this)
+	: mSceneManager(std::make_shared<SceneManager>(*this)
+	)
 {
 
+}
+
+
+ApplicationImpl::~ApplicationImpl()
+{
+
+}
+
+
+bool
+ApplicationImpl::createDefaultShaders()
+{
+	/*auto defaultPBR = std::make_shared<Reef::Shader>();
+	defaultPBR->setName(Reef::BuiltInShaders::DefaultPBR);
+	defaultPBR->setVertexShaderSource(std::as_bytes(std::span(Shaders::DefaultPBR::vertexShaderSourceSpirV)));
+	defaultPBR->setFragmentShaderSource(std::as_bytes(std::span(Shaders::DefaultPBR::fragmentShaderSourceSpirV)));
+	
+	if (!mAssetManager.addShader(Reef::BuiltInShaders::DefaultPBR, defaultPBR))
+	{
+		return false;
+	}*/
+	return true;
 }
 
 
@@ -31,17 +62,20 @@ ApplicationImpl::create(const CommandLineArguments& arguments)
 	std::unique_ptr<ApplicationImpl> app(new ApplicationImpl);
 
 	app->mWindow = Window::create("", 1024, 768, false, false);
-	//auto layer = app->addLayer<Reef::WindowLayer>();
 
-
-
-	Coral::RAII::ContextPtr mContext;
-
-	if (!app->mRenderer.initialize(*app))
+	auto renderer = std::make_unique<Reef::Rendering::DefaultRenderer>();
+	
+	if (!renderer->initialize(*app))
 	{
 		return nullptr;
 	}
 
+	app->mRenderer = std::move(renderer);
+
+	//if (!app->createDefaultShaders())
+	//{
+	//	return nullptr;
+	//}
 	return app;
 }
 
@@ -86,42 +120,34 @@ ApplicationImpl::run()
 Scene*
 ApplicationImpl::getActiveScene()
 {
-	return mSceneManager.activeScene();
+	return mSceneManager->activeScene();
 }
 
 
 SceneManager&
 ApplicationImpl::sceneManager()
 {
-	return mSceneManager;
+	return *mSceneManager;
 }
+//
+//
+//AssetManager&
+//ApplicationImpl::assetManager()
+//{
+//	return mAssetManager;
+//}
 
 
-ResourceManager&
-ApplicationImpl::resourceManager()
-{
-	return mResourceManager;
-}
+//ResourceManager&
+//ApplicationImpl::resourceManager()
+//{
+//	return mResourceManager;
+//}
 
-
-IShaderManager&
-ApplicationImpl::shaderManager()
-{
-	return mShaderManager;
-}
-
-
-IRenderer&
+Reef::Rendering::IRenderer&
 ApplicationImpl::renderer()
 {
-	return mRenderer;
-}
-
-
-Coral::Context*
-ApplicationImpl::renderContext()
-{
-	return mRenderContext.get();
+	return *mRenderer;
 }
 
 
@@ -132,11 +158,6 @@ ApplicationImpl::gameLoop()
 	{
 		mWindow->processEvents();
 
-		if (auto scene = getActiveScene())
-		{
-			scene->update();
-		}
-
 		if (mWindow->shouldClose())
 		{
 			quit(ReturnCode::SUCCESS);
@@ -146,6 +167,18 @@ ApplicationImpl::gameLoop()
 		{
 			break;
 		}
+
+		auto scene = getActiveScene();
+
+
+		if (!scene)
+		{
+			continue;
+		}
+
+		scene->update();
+
+		mRenderer->render(scene->createSceneView());
 	}
 }
 

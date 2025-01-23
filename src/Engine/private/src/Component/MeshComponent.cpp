@@ -1,4 +1,7 @@
-module Engine.Component.MeshComponent;
+#include <Engine/Component/MeshComponent.hpp>
+
+#include <memory>
+
 
 using namespace Reef;
 
@@ -51,6 +54,15 @@ MeshComponent::material(uint32_t index)
 		return nullptr;
 	}
 
-	return mMaterialOverride[index];
+	auto material = mMaterialOverride[index];
+	if (!material)
+	{
+		if (auto primitive = mMesh->getPrimitive(index))
+		{
+			material = primitive->material();
+		}
+	}
+
+	return material;
 }
 

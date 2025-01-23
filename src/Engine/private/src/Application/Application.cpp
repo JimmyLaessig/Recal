@@ -1,16 +1,13 @@
-module;
+#include <Engine/Application/Application.hpp>
+
+#include <Engine/Application/ApplicationImpl.hpp>
 
 #include <memory>
-
-module Engine.Application;
-
-import Engine.Application.ApplicationImpl;
-
 
 namespace Reef
 {
 
-std::unique_ptr<IApplication>
+std::unique_ptr<Application>
 createApplication(const CommandLineArguments& arguments)
 {
 	return ApplicationImpl::create(arguments);

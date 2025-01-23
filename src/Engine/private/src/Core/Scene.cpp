@@ -1,83 +1,38 @@
-module;
+#include <Engine/Core/Scene.hpp>
+#include <Engine/Core/SceneObject.hpp>
+#include <Engine/Application/Application.hpp>
+#include <Common/SmartPointer.hpp>
+
+#include <Engine/Component/CameraComponent.hpp>
+#include <Engine/Component/MeshComponent.hpp>
+
+#include <glm/glm.hpp>
 
 #include <chrono>
 #include <mutex>
 #include <string>
 #include <vector>
 
-module Engine.Scene;
-
 using namespace Reef;
 
-import Engine.Constants;
-import Engine.TypeRegistry;
-import Common.SmartPointer;
 
-GameObject*
-Scene::createGameObject(std::string_view name)
+SceneObject*
+Scene::createSceneObject(std::string_view name)
 {
 	std::lock_guard lock(mGameObjectsProtection);
-	mGameObjects.push_back(std::unique_ptr<GameObject>(new GameObject));
-	auto go = mGameObjects.back().get();
-	go->mScene = this;
 
-	go->setName(name);
-	
-	return go;
+	if (auto ctor = TypeRegistry::getTypeTraits(SceneObject::classType()).constructorDelegate)
+	{
+		auto go = Common::staticPointerCast<SceneObject>(ctor());
+		go->setName(name);
+		go->setScene(*this);
+		go->initialize(application());
+		return mGameObjects.emplace_back(std::move(go)).get();
+	}
+	{
+		return nullptr;
+	}
 }
-
-
-Component*
-Scene::addComponent(const Type& type, GameObject& owner, bool activate)
-{
-	if (!type.isSubclassOf(Component::classType()))
-	{
-		// TODO: Log error
-		return nullptr;
-	}
-
-	auto ctor = TypeRegistry::constructor(type);
-
-	if (!ctor)
-	{
-		// TODO: Log error
-		return nullptr;
-	}
-
-	auto obj = ctor();
-
-	auto component = Common::staticPointerCast<Component>(std::move(obj));
-
-	if (!component)
-	{
-		return nullptr;
-	}
-
-	auto ptr = owner.mComponents.emplace_back(std::move(component)).get();
-
-	ptr->mOwner = &owner;
-
-	if (auto updateFun = TypeRegistry::updateFunction(type))
-	{
-		updateFun(*ptr);
-	}
-	//auto updateFun = ptr->componentUpdateFunction();
-
-	ptr->onComponentCreated();
-
-	if (isRunning())
-	{
-		if (activate)
-		{
-			ptr->setActive(true);
-		}
-
-		ptr->start();
-	}
-
-	return ptr;
-}
-
 
 //void
 //Scene::destroyNow(Engine::GameObject* gameObject)
@@ -141,10 +96,10 @@ Scene::addComponent(const Type& type, GameObject& owner, bool activate)
 //}
 
 
-std::vector<GameObject*> 
+std::vector<SceneObject*>
 Scene::gameObjects()
 {
-	std::vector<GameObject*> result;
+	std::vector<SceneObject*> result;
 
 	for (auto& go : mGameObjects)
 	{
@@ -161,15 +116,15 @@ Scene::gameObjects()
 void
 Scene::start()
 {
-	if (mIsRunning)
-	{
-		// TODO: Log error that scene is already running
-		return;
-	}
+	//if (mIsRunning)
+	//{
+	//	// TODO: Log error that scene is already running
+	//	return;
+	//}
 
-	mStartTimestamp				= mTime.now();
-	mTime.currentFrameTimestamp = mStartTimestamp;
-	mTime.deltaTime				= 0;
+	//mStartTimestamp				= mTime.now();
+	//mTime.currentFrameTimestamp = mStartTimestamp;
+	//mTime.deltaTime				= 0;
 
 	// TODO: Invoke initialize callbacks
 
@@ -180,17 +135,17 @@ Scene::start()
 void
 Scene::stop()
 {
-	if (!mIsRunning)
-	{
-		// TODO: Log error that scene is not running
-		return;
-	}
-
-	mIsRunning = false;
-
-	auto now = mTime.now();
-	mTime.currentFrameTimestamp = mStartTimestamp;
-	mTime.deltaTime = 0;
+//	if (!mIsRunning)
+//	{
+//		// TODO: Log error that scene is not running
+//		return;
+//	}
+//
+//	mIsRunning = false;
+//
+//	auto now = mTime.now();
+//	mTime.currentFrameTimestamp = mStartTimestamp;
+//	mTime.deltaTime = 0;
 
 	// TODO: Invoke stop callbacks
 }
@@ -199,11 +154,11 @@ Scene::stop()
 void
 Scene::updateTime()
 {
-	auto now = mTime.now();
+	/*auto now = mTime.now();
 	mTime.currentFrameTimestamp = mStartTimestamp;
 	
 	double deltaTime = static_cast<double>(now - mTime.currentFrameTimestamp) * Constants<double>::NANOSECONDS_TO_SECONDS;
-	mTime.deltaTime = static_cast<float>(deltaTime);
+	mTime.deltaTime = static_cast<float>(deltaTime);*/
 }
 
 
@@ -228,26 +183,11 @@ Scene::isRunning() const
 	return mIsRunning;
 }
 
-
-const Application&
-Scene::application() const
-{
-	return *mApplication;
-}
-
-
-Application&
-Scene::application()
-{
-	return *mApplication;
-}
-
-
-const
-Time& Scene::time() const
-{
-	return mTime;
-}
+//const
+//Time& Scene::time() const
+//{
+//	return mTime;
+//}
 
 
 //void
@@ -260,3 +200,66 @@ Time& Scene::time() const
 //
 //	//mGameObjects
 //}
+
+
+Reef::Rendering::SceneView
+Scene::createSceneView()
+{
+	Reef::Rendering::SceneView view{};
+
+	if (auto cameraComponent = findComponent<CameraComponent>())
+	{
+		auto cameraModelMatrix			 = cameraComponent->transform().localToWorldMatrix();
+		view.camera						 = cameraComponent->camera();
+		view.viewMatrix					 = glm::inverse(cameraModelMatrix);
+		view.viewProjectionMatrix	     = view.camera.projectionMatrix * view.viewMatrix;
+		view.inverseViewProjectionMatrix = glm::inverse(view.viewProjectionMatrix);
+	}
+
+	for (auto meshComponent : getComponents<MeshComponent>())
+	{
+		Reef::Rendering::RenderObject ro;
+		ro.transform.localToWorldMatrix = meshComponent->transform().localToWorldMatrix();
+		ro.transform.worldToLocalMatrix = meshComponent->transform().worldToLocalMatrix();
+		ro.transform.normalMatrix		= glm::mat3(glm::inverse(glm::transpose(ro.transform.localToWorldMatrix)));
+		ro.transform.objectId			= reinterpret_cast<size_t>(&meshComponent->owner());
+		
+		auto mesh = meshComponent->mesh();
+		for (size_t i = 0; i < mesh->getNumPrimitives(); ++i)
+		{
+			ro.primitive = mesh->getPrimitive(i);
+			ro.material = meshComponent->material(i);
+			view.renderObjects.push_back(ro);
+		}
+	}
+
+	return view;
+}
+
+
+Component*
+Scene::findComponent(const Type& type)
+{
+	for (auto& go : mGameObjects)
+	{
+		if (auto comp = go->getComponent(type))
+		{
+			return comp;
+		}
+	}
+
+	return nullptr;
+}
+
+
+std::vector<Component*>
+Scene::getComponents(const Type& type)
+{
+	std::vector<Component*> components;
+
+	for (auto& go : mGameObjects)
+	{
+		go->getComponents(type, components);
+	}
+	return components;
+}

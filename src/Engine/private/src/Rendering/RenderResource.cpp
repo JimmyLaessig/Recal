@@ -1,25 +1,47 @@
-module;
+#include <Engine/Rendering/RenderResource.hpp>
+
+#include <Engine/Rendering/ResourceManager.hpp>
 
 #include <glm/glm.hpp>
 
-module Engine.Rendering.RenderResource;
-
-import RenderLib;
-import Engine.Rendering.ResourceManager;
-import Engine.Rendering.UniformBufferFactory;
-
-import Visitor;
+#include <cassert>
+#include <vector>
+#include <memory>
+#include <span>
 
 using namespace Reef::Rendering;
 
-bool
-RenderResource::set(const RenderObject& renderObject, const SceneView& view, ResourceManager& resourceManager)
+
+RenderResource::RenderResource(ResourceManager& resourceManager)
+	: mResourceManager(resourceManager)
 {
-	auto context					= resourceManager.context();
-	auto modelViewMatrix			= view.viewMatrix * renderObject.localToWorldMatrix;
-	auto modelViewProjectionMatrix	= view.viewProjectionMatrix * modelViewMatrix;
+}
 
-	
 
-	return true;
+RenderResource::~RenderResource()
+{}
+
+
+size_t
+RenderResource::version() const
+{
+	return mVersion;
+}
+
+
+bool
+RenderResource::shouldUpdate(size_t version)
+{
+	bool result = version > mVersion || mVersion == std::numeric_limits<size_t>::max();
+
+	mVersion = version;
+
+	return result;
+}
+
+
+ResourceManager& 
+RenderResource::resourceManager()
+{
+	return mResourceManager;
 }

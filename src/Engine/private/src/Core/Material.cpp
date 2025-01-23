@@ -1,4 +1,4 @@
-module;
+#include <Engine/Core/Material.hpp>
 
 #include <glm/glm.hpp>
 
@@ -6,17 +6,15 @@ module;
 #include <memory>
 #include <cassert>
 
-module Engine.Material;
-
-import Engine.Texture;
+#include <Common/Visitor.hpp>
 
 using namespace Reef;
 
 
-Material::Material()
-{
-	//setShader(Engine::Rendering::Renderer::instance().shaderManager().find("DefaultPBR"));
-}
+//Material::Material(std::shared_ptr<Reef::Rendering::Shader> shader)
+//	: mShader(shader)
+//{
+//}
 
 
 bool
@@ -101,112 +99,110 @@ Material::setParameter(std::string_view name, std::shared_ptr<Texture> value)
 }
 
 
-void 
-Material::setMode(Mode mode)
+std::optional<Material::ParameterValue>
+Material::getParameter(std::string_view name) const
 {
-	mMode = mode;
-}
+	auto iter = mParameters.find(std::string(name));
 
+	if (iter == mParameters.end())
+	{
+		return {};
+	}
 
-Material::Mode
-Material::mode() const
-{
-	return mMode;
-}
-
-
-//void
-//Material::setShader(std::shared_ptr<Shader> shader)
-//{
-//	mShader = shader;
-//	mNameToLocationMapping.clear();
-//	mParameters.clear();
-//	for (auto& binding : mShader->shader()->getUniformBindings())
-//	{
-//		mNameToLocationMapping[binding.definition.name] = binding.location;
-//		switch (binding.definition.type)
-//		{
-//			case RenderLib::UniformType::FLOAT:		setParameter(binding.definition.name, 0.f); break;
-//			case RenderLib::UniformType::VEC2F:		setParameter(binding.definition.name, glm::vec2()); break;
-//			case RenderLib::UniformType::VEC3F:		setParameter(binding.definition.name, glm::vec3()); break;
-//			case RenderLib::UniformType::VEC4F:		setParameter(binding.definition.name, glm::vec4()); break;
-//			case RenderLib::UniformType::MAT2X2F:	setParameter(binding.definition.name, glm::mat2()); break;
-//			//case RenderLib::UniformType::MAT2X3F:	setParameter(binding.definition.name, Math::Mat23F); break;
-//			//case RenderLib::UniformType::MAT2X4F:	setParameter(binding.definition.name, Math::Mat24F); break;
-//			//case RenderLib::UniformType::MAT3X2F:	setParameter(binding.definition.name, Math::Mat32F); break;
-//			case RenderLib::UniformType::MAT3X3F:	setParameter(binding.definition.name, glm::mat3()); break;
-//			//case RenderLib::UniformType::MAT3X4F:	setParameter(binding.definition.name, Math::Mat34F); break;
-//			//case RenderLib::UniformType::MAT4X2F:	setParameter(binding.definition.name, Math::Mat42F); break;
-//			//case RenderLib::UniformType::MAT4X3F:	setParameter(binding.definition.name, Math::Mat43F); break;
-//			case RenderLib::UniformType::MAT4X4F:	setParameter(binding.definition.name, glm::mat4()); break;
-//		/*	case RenderLib::UniformType::UINT32:	setParameter(binding.definition.name, 0u); break;
-//			case RenderLib::UniformType::UINT32_2:  setParameter(binding.definition.name, glm::uvec2()); break;
-//			case RenderLib::UniformType::UINT32_3:  setParameter(binding.definition.name, glm::uvec3()); break;
-//			case RenderLib::UniformType::UINT32_4:  setParameter(binding.definition.name, glm::uvec4()); break;*/
-//			case RenderLib::UniformType::INT32:		setParameter(binding.definition.name, 0); break;
-//			//case RenderLib::UniformType::INT32_2:   setParameter(binding.definition.name, glm::ivec2); break;
-//			//case RenderLib::UniformType::INT32_3:   setParameter(binding.definition.name, glm::ivec3); break;
-//			//case RenderLib::UniformType::INT32_4:   setParameter(binding.definition.name, glm::ivec4); break;
-//			case RenderLib::UniformType::SAMPLER:   setParameter(binding.definition.name, Engine::Texture::black()); break;
-//			default: assert(false && "unsupported uniform value");
-//		}
-//	}
-//}
-
-
-//std::shared_ptr<Shader> 
-//Material::shader()
-//{
-//	return mShader;
-//}
-
-std::unordered_map<uint32_t, Material::ParameterValue>
-Material::parameters() const
-{ 
-	return mParameters;
+	return iter->second;
 }
 
 
 bool
 Material::setParameterImpl(std::string_view name, Material::ParameterValue value)
 {
-	std::string nameVal(name.data(), name.size());
-	auto iter = mNameToLocationMapping.find(nameVal);
+	auto iter = mParameters.find(std::string(name));
 
-	if (iter == mNameToLocationMapping.end())
+	if (iter == mParameters.end())
 	{
 		return false;
 	}
 
-	// TODO: Check that the uniform type matches
-	mParameters[iter->second] = value;
+	if (iter->second.index() != value.index())
+	{
+		return false;
+	}
 
-	mIsOutdated = true;
+	iter->second = value;
+
+	markOutdated();
 	return true;
 }
 
 
-std::shared_ptr<Material>
-Material::DefaultPBR()
-{
-	std::shared_ptr<Material> sMaterial;
+//std::shared_ptr<Material>
+//Material::DefaultPBR()
+//{
+//	std::shared_ptr<Material> sMaterial;
+//
+//	if (!sMaterial)
+//	{
+//		sMaterial = std::make_shared<Material>();
+//		//sMaterial->setShader(Engine::Rendering::Renderer::instance().shaderManager().find("DefaultPBR"));
+//		sMaterial->setParameter("baseColorFactor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+//		sMaterial->setParameter("baseColorTexture", Reef::Texture::white());
+//		sMaterial->setParameter("normalTexture", Reef::Texture::normal());
+//		sMaterial->setParameter("occlusionTexture", Reef::Texture::black());
+//		sMaterial->setParameter("occlusionChannel", 0);
+//		sMaterial->setParameter("roughnessTexture", Reef::Texture::white());
+//		sMaterial->setParameter("roughnessChannel", 1);
+//		sMaterial->setParameter("roughnessFactor", 1.0f);
+//		sMaterial->setParameter("metallicTexture", Reef::Texture::black());
+//		sMaterial->setParameter("metallicChannel", 2);
+//		sMaterial->setParameter("metallicFactor", 0.f);
+//	}
+//
+//	return sMaterial;
+//}
 
-	if (!sMaterial)
+
+void
+Material::setShader(std::shared_ptr<Reef::Rendering::Shader> shader)
+{
+	mShader = shader;
+	mParameters.clear();
+	markOutdated();
+
+	if (!mShader)
 	{
-		sMaterial = std::make_shared<Material>();
-		//sMaterial->setShader(Engine::Rendering::Renderer::instance().shaderManager().find("DefaultPBR"));
-		sMaterial->setParameter("baseColorFactor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-		sMaterial->setParameter("baseColorTexture", Reef::Texture::white());
-		sMaterial->setParameter("normalTexture", Reef::Texture::normal());
-		sMaterial->setParameter("occlusionTexture", Reef::Texture::black());
-		sMaterial->setParameter("occlusionChannel", 0);
-		sMaterial->setParameter("roughnessTexture", Reef::Texture::white());
-		sMaterial->setParameter("roughnessChannel", 1);
-		sMaterial->setParameter("roughnessFactor", 1.0f);
-		sMaterial->setParameter("metallicTexture", Reef::Texture::black());
-		sMaterial->setParameter("metallicChannel", 2);
-		sMaterial->setParameter("metallicFactor", 0.f);
+		return;
 	}
 
-	return sMaterial;
+	for (const auto& definition : mShader->descriptorBindingDefinitions())
+	{
+		Common::visit(definition.definition, Common::Visitor{
+			[this, &definition](const Coral::SamplerDefinition& sampler)
+			{ 
+				mParameters[definition.name] = Texture::White;
+			},
+			[this](const Coral::UniformBlockDefinition& uniformBlock)
+			{
+				for (const auto& member : uniformBlock.members)
+				{
+					switch (member.type)
+					{
+						case Coral::ValueType::BOOL:	mParameters[member.name] = true; break;
+						case Coral::ValueType::INT:		mParameters[member.name] = 0; break;
+						case Coral::ValueType::FLOAT:	mParameters[member.name] = 0.f; break;
+						case Coral::ValueType::MAT33F:	mParameters[member.name] = glm::mat3(1.f); break;
+						case Coral::ValueType::MAT44F:	mParameters[member.name] = glm::mat4(1.f); break;
+						case Coral::ValueType::VEC2F:	mParameters[member.name] = glm::vec2(0.f, 0.f); break;
+						case Coral::ValueType::VEC3F:	mParameters[member.name] = glm::vec3(0.f, 0.f, 0.f); break;
+						case Coral::ValueType::VEC4F:	mParameters[member.name] = glm::vec4(0.f, 0.f, 0.f, 0.f); break;
+					}
+				}
+			} });
+	}
+}
+
+
+std::shared_ptr<Reef::Rendering::Shader>
+Material::shader() const
+{
+	return mShader;
 }

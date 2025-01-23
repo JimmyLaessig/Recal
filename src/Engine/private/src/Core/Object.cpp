@@ -1,11 +1,6 @@
-module;
-
-#include <memory>
-
-module Engine.Object;
-
-import Engine.TypeRegistry;
+#include <Engine/Core/Object.hpp>
+#include <Engine/Core/TypeRegistry.hpp>
 
 using namespace Reef;
 
-const bool Object::sTypeRegistered = TypeRegistry::registerType<Object>();
+Type Object::sType = TypeRegistry::registerType<Object>();

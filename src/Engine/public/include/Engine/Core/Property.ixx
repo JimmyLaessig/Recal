@@ -1,7 +1,7 @@
 //#ifndef ENGINE_PROPERTY_H_
 //#define ENGINE_PROPERTY_H_
 //
-////#include <Engine/System.h>
+////#include <Engine/System.hpp>
 //
 //#include <string>
 //#include <string_view>
@@ -36,4 +36,4 @@
 //
 //} // namespace Base
 //
-//#endif // UTIL_TYPE_H_
+//#endif // !UTIL_TYPE_H_
